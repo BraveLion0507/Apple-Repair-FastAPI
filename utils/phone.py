@@ -39,4 +39,5 @@ class SMSTransport:
 
     @classmethod
     def validate_phone(cls, phone: str) -> Match[str] | None:
-        return re.match(r"^7[0-9]{10}$", phone)
+        pattern = r"^\+(?:[0-9] ?){6,14}[0-9]"
+        return re.match(pattern, phone)
