@@ -1,4 +1,4 @@
-from typing import Match
+from typing import Match, Union
 import requests
 import re
 from utils.app_exceptions import AppException
@@ -38,6 +38,6 @@ class SMSTransport:
         raise AppException.InternalServerException('Не удалось отправить код подтверждения!')
 
     @classmethod
-    def validate_phone(cls, phone: str) -> Match[str] | None:
+    def validate_phone(cls, phone: str) -> Union[Match[str], None]:
         pattern = r"^\+(?:[0-9] ?){6,14}[0-9]"
         return re.match(pattern, phone)
