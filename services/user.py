@@ -1,5 +1,5 @@
 import uuid
-from typing import List
+from typing import List, Union
 
 from cruds.user import UserCRUD
 from schemas.user import (
@@ -161,7 +161,7 @@ class ClientService(UserService):
 
 class MasterService(UserService):
     async def create_master(
-        self, id: int | None, master: MasterIn | MasterRegister
+        self, id: Union[int, None], master: Union[MasterIn, MasterRegister]
     ) -> ServiceResult:
         dbmaster = await UserCRUD(self.db).create_master(id, master)
         if not dbmaster:
