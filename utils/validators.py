@@ -4,6 +4,7 @@ from starlette.datastructures import UploadFile
 from config.database import get_db
 from models import tables_dict
 import phonenumbers
+from typing import Union
 
 
 def email_validator(email: str) -> bool:
@@ -76,7 +77,7 @@ async def upload_file(data: dict, field_name: str, table_name: str, entity_id: i
     return data
 
 
-def phone_validator(phone: str) -> bool | str:
+def phone_validator(phone: str) -> Union[bool, str]:
     try:
         number = phonenumbers.parse(phone)
     except phonenumbers.phonenumberutil.NumberParseException:
