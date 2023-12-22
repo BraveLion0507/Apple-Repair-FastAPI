@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Union
 
 from models import Master
 from models.relationship import MasterRepair
@@ -9,7 +9,7 @@ from utils.app_exceptions import AppException
 
 
 class ServiceCRUD(AppCRUD):
-    def get_service_type(self, id: int) -> ServiceType | Exception:
+    def get_service_type(self, id: int) -> Union[ServiceType, Exception]:
         service_type = self.db.query(ServiceType).filter(ServiceType.id == id).first()
         if service_type is None:
             return AppException.NotFoundException(detail='Услуга не найдена!')
