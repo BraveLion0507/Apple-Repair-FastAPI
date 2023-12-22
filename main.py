@@ -79,9 +79,8 @@ origins = [
     "http://127.0.0.1:3000",
     "http://localhost:3000",
     "https://xorwise.dev",
-    
-    "https://apple-repair-fast-api-six.vercel.app/"
-    "https://apple-repair-frontend-taupe.vercel.app/"
+    "https://apple-repair-fast-api-six.vercel.app/",
+    "https://apple-repair-frontend-taupe.vercel.app/",
 ]
 
 app.add_middleware(
