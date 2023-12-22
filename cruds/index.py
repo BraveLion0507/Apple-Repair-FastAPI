@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Union
 
 from models import Order, ServiceRequest
 from models.user import Master
@@ -10,7 +10,7 @@ from utils.app_exceptions import AppException
 
 
 class IndexCRUD(AppCRUD):
-    def get_article_by_id(self, id: int) -> Article | Exception:
+    def get_article_by_id(self, id: int) -> Union[Article, Exception]:
         article = self.db.query(Article).filter(Article.id == id).first()
         if not article:
             return AppException.NotFoundException('Статья не найдена!')
@@ -22,7 +22,7 @@ class IndexCRUD(AppCRUD):
         articles = self.db.query(Article).order_by(Article.created_at).all()
         return list(articles)[::-1]
 
-    def like_article_by_id(self, id: int, user_id: int) -> str | Exception:
+    def like_article_by_id(self, id: int, user_id: int) -> Union[str, Exception]:
         article = self.db.query(Article).filter(Article.id == id).first()
         if not article:
             return AppException.NotFoundException('Статья не найдена!')
@@ -35,7 +35,7 @@ class IndexCRUD(AppCRUD):
             return 'Success!'
         return "Failed!"
 
-    def dislike_article_by_id(self, id: int, user_id: int) -> str | Exception:
+    def dislike_article_by_id(self, id: int, user_id: int) -> Union[str, Exception]:
         article = self.db.query(Article).filter(Article.id == id).first()
         if not article:
             return AppException.NotFoundException('Статья не найдена!')
@@ -55,7 +55,7 @@ class IndexCRUD(AppCRUD):
         self.db.refresh(review)
         return review
 
-    def get_review_by_id(self, id: int) -> Review | Exception:
+    def get_review_by_id(self, id: int) -> Union[Review, Exception]:
         review = self.db.query(Review).filter(Review.id == id).first()
         if not review:
             return AppException.NotFoundException('Отзыв не найден!')
@@ -92,7 +92,7 @@ class IndexCRUD(AppCRUD):
         comments = self.db.query(ArticleComment).filter(ArticleComment.article_id == article_id).all()
         return list(comments)
 
-    def like_comment_by_id(self, comment_id: int, client_id: int) -> dict | Exception:
+    def like_comment_by_id(self, comment_id: int, client_id: int) -> Union[dict, Exception]:
         comment_like = self.db.query(ArticleCommentLike).filter(ArticleCommentLike.comment_id == comment_id,
                                                                 ArticleCommentLike.client_id == client_id).first()
         if comment_like:
@@ -106,7 +106,7 @@ class IndexCRUD(AppCRUD):
         self.db.commit()
         return {'result': 'Success!'}
 
-    def dislike_comment_by_id(self, comment_id: int, client_id: int) -> dict | Exception:
+    def dislike_comment_by_id(self, comment_id: int, client_id: int) -> Union[dict, Exception]:
         comment_like = self.db.query(ArticleCommentLike).filter(ArticleCommentLike.comment_id == comment_id,
                                                                 ArticleCommentLike.client_id == client_id).first()
         if not comment_like:

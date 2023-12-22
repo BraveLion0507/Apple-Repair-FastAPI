@@ -1,5 +1,5 @@
 from fastapi import HTTPException, UploadFile, BackgroundTasks
-from typing import List
+from typing import List, Union
 
 from models import StatusEnum
 from utils.app_exceptions import AppException
@@ -143,7 +143,7 @@ class FeedbackService(AppService):
             return ServiceResult(AppException.NotFoundException('Not found!'))
         return ServiceResult(feedback)
 
-    def get_feedback(self, offer_id: int | None, order_id: int | None, user: models.user.Client) -> ServiceResult:
+    def get_feedback(self, offer_id: Union[int, None], order_id: Union[int, None], user: models.user.Client) -> ServiceResult:
         try:
             master = UserCRUD(self.db).get_master_by_client(user)
             master_username = master.username

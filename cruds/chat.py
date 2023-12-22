@@ -1,6 +1,6 @@
 import os
 import base64
-from typing import List
+from typing import List, Union
 from models.relationship import UnreadMessage
 from schemas.chat import DialogIn
 from services.main import AppCRUD
@@ -50,7 +50,7 @@ class ChatCRUD(AppCRUD):
         self.db.refresh(message)
         return message
 
-    def create_dialog(self, data: DialogIn, user_id: int) -> Dialog | Exception:
+    def create_dialog(self, data: DialogIn, user_id: int) -> Union[Dialog, Exception]:
         if user_id != data.sender1_id and user_id != data.sender2_id:
             return AppException.ForbiddenException('Нет доступа!')
         dialog = Dialog(order_id=data.order_id, request_id=data.request_id, sender1_id=data.sender1_id,
@@ -97,7 +97,7 @@ class ChatCRUD(AppCRUD):
             self.db.refresh(new_messages[i])
         return new_messages
 
-    def update_message(self, message: Message, text: str, files: list | None) -> Message:
+    def update_message(self, message: Message, text: str, files: Union[list, None]) -> Message:
         if text:
             message.message = text
         if files:
