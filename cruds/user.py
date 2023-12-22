@@ -1,6 +1,6 @@
 import datetime
 from random import randint
-from typing import List
+from typing import List, Union
 from fastapi import UploadFile
 import os
 from models.relationship import UnreadMessage
@@ -28,7 +28,7 @@ import uuid
 
 # noinspection PyUnresolvedReferences
 class UserCRUD(AppCRUD):
-    async def create_client(self, client: ClientRegister) -> dict | Exception:
+    async def create_client(self, client: ClientRegister) -> Union[dict, Exception]:
 
         is_valid_email = email_validator(client.email)
         if not is_valid_email:
@@ -55,7 +55,7 @@ class UserCRUD(AppCRUD):
         self.db.commit()
         return {"result": "Success!", "user_id": user.id}
 
-    async def send_email_verification_code(self, user: Client) -> dict | Exception:
+    async def send_email_verification_code(self, user: Client) -> Union[dict, Exception]:
         if user.is_email_verified:
             return AppException.AlreadyExistsException('Почта уже подтверждена!')
         code = ''.join(["{}".format(randint(0, 9)) for num in range(0, 6)])
@@ -64,7 +64,7 @@ class UserCRUD(AppCRUD):
         self.db.commit()
         return {'result': 'Success!'}
 
-    def verify_email(self, user: Client, code: str) -> dict | Exception:
+    def verify_email(self, user: Client, code: str) -> Union[dict, Exception]:
         if user.is_email_verified:
             return {'result': 'Success!'}
         if user.email_verification_code != code:
@@ -74,7 +74,7 @@ class UserCRUD(AppCRUD):
         self.db.commit()
         return {'result': 'Success!'}
 
-    async def send_phone_verification_code(self, user: Client, bg_tasks: BackgroundTasks) -> dict | Exception:
+    async def send_phone_verification_code(self, user: Client, bg_tasks: BackgroundTasks) -> Union[dict, Exception]:
         if user.is_phone_verified:
             return AppException.AlreadyExistsException('Телефон уже подтвержден!')
         code = ''.join(["{}".format(randint(0, 9)) for num in range(0, 6)])
@@ -86,7 +86,7 @@ class UserCRUD(AppCRUD):
         self.db.commit()
         return {'result': 'Success!'}
 
-    def verify_phone(self, user: Client, code: str) -> dict | Exception:
+    def verify_phone(self, user: Client, code: str) -> Union[dict, Exception]:
         if user.is_phone_verified:
             return {'result': 'Success!'}
         if user.phone_verification_code != code:
@@ -96,7 +96,7 @@ class UserCRUD(AppCRUD):
         self.db.commit()
         return {'result': 'Success!'}
 
-    def get_jwt_tokens(self, data: OAuth2PasswordRequestForm) -> dict | Exception:
+    def get_jwt_tokens(self, data: OAuth2PasswordRequestForm) -> Union[dict, Exception]:
         parsed_phone = phone_validator(data.username)
         if not parsed_phone:
             return AppException.ValidationException('Некорректный номер телефона!')
@@ -131,7 +131,7 @@ class UserCRUD(AppCRUD):
             "refresh_token": refresh_token,
         }
 
-    async def create_master(self, id: int, master: MasterRegister | MasterIn) -> dict | Exception:
+    async def create_master(self, id: int, master: MasterRegister | MasterIn) -> Union[dict, Exception]:
         if self.db.query(Master).filter(Master.username == str(master.username)).first() is not None:
             return AppException.AlreadyExistsException(
                 detail='Пользователь с таким именем пользователя уже существует!')
@@ -173,7 +173,7 @@ class UserCRUD(AppCRUD):
         client = self.db.query(Client).filter(Client.id == id).first()
         return client
 
-    def update_client_by_id(self, id: int, data: dict, file: UploadFile) -> Client | Exception:
+    def update_client_by_id(self, id: int, data: dict, file: UploadFile) -> Union[Client, Exception]:
         client = self.db.query(Client).filter(Client.id == id).first()
         if not client:
             return AppException.NotFoundException(detail='Пользователь не найден!')
@@ -228,7 +228,7 @@ class UserCRUD(AppCRUD):
         masters = self.db.query(Master).all()
         return list(masters) if len(masters) else []
 
-    def get_master_by_username(self, username: str) -> dict | Exception:
+    def get_master_by_username(self, username: str) -> Union[dict, Exception]:
         master = self.db.query(Master).filter(Master.username == username).first()
         if not master:
             return AppException.NotFoundException(detail='Пользователь не найден!')
@@ -239,7 +239,7 @@ class UserCRUD(AppCRUD):
                            })
         return new_master
 
-    def update_master_by_username(self, username: str, data: dict, pictures: List[UploadFile]) -> dict | Exception:
+    def update_master_by_username(self, username: str, data: dict, pictures: List[UploadFile]) -> Union[dict, Exception]:
         master = self.db.query(Master).filter(Master.username == username).first()
         if not master:
             return AppException.NotFoundException(detail='Пользователь не найден!')
@@ -403,7 +403,7 @@ class UserCRUD(AppCRUD):
         master.balance += amount
         self.db.commit()
 
-    def replenish_balance(self, master: Master, amount: float) -> dict | Exception:
+    def replenish_balance(self, master: Master, amount: float) -> Union[dict, Exception]:
         if amount <= 0:
             return AppException.ValidationException('Некорректная сумма платежа!')
         return_id = uuid.uuid4()
@@ -433,7 +433,7 @@ class UserCRUD(AppCRUD):
         }
         return data
 
-    def confirm_payment(self, return_id: uuid.UUID) -> dict | Exception:
+    def confirm_payment(self, return_id: uuid.UUID) -> Union[dict, Exception]:
         payment = self.db.query(DBPayment).filter(DBPayment.id == return_id).first()
         if not payment:
             return AppException.NotFoundException('Платеж не найден!')
@@ -483,7 +483,7 @@ class UserCRUD(AppCRUD):
         ).all()
         return payments
 
-    async def recover_password(self, data: RecoverPasswordIn) -> dict | Exception:
+    async def recover_password(self, data: RecoverPasswordIn) -> Union[dict, Exception]:
         user = self.db.query(Client).filter(Client.phone == data.phone).first()
         if not user:
             return AppException.NotFoundException('Пользователь не найден!')
@@ -494,7 +494,7 @@ class UserCRUD(AppCRUD):
         self.db.commit()
         return {'result': 'Success!', 'user_id': user.id}
 
-    def verify_password_recovery(self, code: str, user_id: int) -> dict | Exception:
+    def verify_password_recovery(self, code: str, user_id: int) -> Union[dict, Exception]:
         user = self.db.query(Client).filter(Client.id == user_id).first()
         if not user:
             return AppException.NotFoundException('Пользователь не найден!')
@@ -502,7 +502,7 @@ class UserCRUD(AppCRUD):
             return AppException.ValidationException('Неправильный код подтверждения!')
         return {'result': 'Success!'}
 
-    def change_password(self, data: ChangePasswordIn) -> dict | Exception:
+    def change_password(self, data: ChangePasswordIn) -> Union[dict, Exception]:
         user = self.db.query(Client).filter(Client.id == data.user_id).first()
         if not user:
             return AppException.NotFoundException('Пользователь не найден!')
