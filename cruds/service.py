@@ -43,7 +43,7 @@ class ServiceCRUD(AppCRUD):
         categories = self.db.query(ServiceCategory).all()
         return list(categories) if len(categories) else []
 
-    def create_repair_type(self, data: RepairTypeIn, master: Master) -> RepairType | Exception:
+    def create_repair_type(self, data: RepairTypeIn, master: Master) -> Union[RepairType, Exception]:
         new_repair_type = RepairType(
             name=data.name,
             description=data.description,
@@ -75,11 +75,11 @@ class ServiceCRUD(AppCRUD):
         repair_types = self.db.query(RepairType).all()
         return list(repair_types) if len(repair_types) else []
 
-    def get_repair_types_by_device(self, id: int) -> List[RepairType] | Exception:
+    def get_repair_types_by_device(self, id: int) -> Union[List[RepairType], Exception]:
         repair_types = self.db.query(RepairType).filter(RepairType.device_id == id).all()
         return list(repair_types) if len(repair_types) else []
 
-    def update_repair_type(self, id: int, data: RepairTypeEdit, master: Master) -> RepairType | Exception:
+    def update_repair_type(self, id: int, data: RepairTypeEdit, master: Master) -> Union[RepairType, Exception]:
         repair_type = self.db.query(RepairType).filter(RepairType.id == id).first()
         if not repair_type:
             return AppException.NotFoundException('Вид ремонта не найден!')
@@ -157,7 +157,7 @@ class ServiceCRUD(AppCRUD):
             services.add(service.id)
         return response
 
-    def delete_master_repair_by_repair_id(self, repair_id: int, master: Master) -> dict | Exception:
+    def delete_master_repair_by_repair_id(self, repair_id: int, master: Master) -> Union[dict, Exception] :
         master_repair = self.db.query(MasterRepair).filter(MasterRepair.repair_id == repair_id,
                                                            MasterRepair.master_id == master.username).first()
         if not master_repair:
