@@ -20,36 +20,35 @@ class ChatService(AppService):
             while True:
                 data = await websocket.receive_json()
                 final_data = dict()
-                match data.get('type'):
-                    case 1:
-                        message = ChatCRUD(self.db).create_message(data.get('message', ''), data.get('files', []),
-                                                                   dialog_id, sender.id)
-                        final_data['type'] = 1
-                        final_data['message'] = Message(**message.__dict__).model_dump(mode='json')
-                    case 2:
-                        if data.get('message_id'):
-                            message = ChatCRUD(self.db).get_message(data['message_id'], sender.id)
-                            new_data = ChatCRUD(self.db).update_message(message, data.get('message'),
+                data_type = data.get('type')
+                if data_type == 1:
+                    message = ChatCRUD(self.db).create_message(data.get('message', ''), data.get('files', []),dialog_id, sender.id)
+                    final_data['type'] = 1
+                    final_data['message'] = Message(**message.__dict__).model_dump(mode='json')
+                elif data_type == 2:
+                    if data.get('message_id'):
+                        message = ChatCRUD(self.db).get_message(data['message_id'], sender.id)
+                        new_data = ChatCRUD(self.db).update_message(message, data.get('message'),
                                                                         data.get('files', []))
-                            final_data['type'] = 2
-                            final_data['message'] = Message(**new_data.__dict__).model_dump(mode='json')
-                    case 3:
-                        if data.get('messages'):
-                            messages = ChatCRUD(self.db).make_read(data['messages'], sender.id)
-                            final_data['type'] = 3
-                            final_data['messages'] = list()
-                            for message in messages:
-                                final_data['messages'].append(Message(**message.__dict__).model_dump(mode='json'))
-                    case 4:
-                        final_data['type'] = 4
-                        final_data['user'] = sender.id
-                        final_data['is_typing'] = True
-                    case 5:
-                        final_data['type'] = 5
-                        final_data['user'] = sender.id
-                        final_data['is_typing'] = False
-                    case _:
-                        raise AppException.NotFoundException('Некорректный тип запроса!')
+                        final_data['type'] = 2
+                        final_data['message'] = Message(**new_data.__dict__).model_dump(mode='json')
+                elif data_type == 3:
+                    if data.get('messages'):
+                        messages = ChatCRUD(self.db).make_read(data['messages'], sender.id)
+                        final_data['type'] = 3
+                        final_data['messages'] = list()
+                        for message in messages:
+                            final_data['messages'].append(Message(**message.__dict__).model_dump(mode='json'))
+                elif data_type == 4:
+                    final_data['type'] = 4
+                    final_data['user'] = sender.id
+                    final_data['is_typing'] = True
+                elif data_type == 5:
+                    final_data['type'] = 5
+                    final_data['user'] = sender.id
+                    final_data['is_typing'] = False
+                else:
+                    raise AppException.NotFoundException('Некорректный тип запроса!')
                 await websocket.send_json(final_data)
                 await manager.send_direct_message(final_data, receiver_id, dialog_id)
         except WebSocketDisconnect:
