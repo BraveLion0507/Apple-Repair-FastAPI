@@ -43,7 +43,7 @@ class ServiceCRUD(AppCRUD):
         categories = self.db.query(ServiceCategory).all()
         return list(categories) if len(categories) else []
 
-    def create_repair_type(self, data: RepairTypeIn, master: Master) -> Union[RepairType, Exception]:
+    def create_repair_type(self, data: RepairTypeIn, master: Master) -> RepairType:
         new_repair_type = RepairType(
             name=data.name,
             description=data.description,
