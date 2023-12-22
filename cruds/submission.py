@@ -1,6 +1,6 @@
 import datetime
 import os
-from typing import List
+from typing import List, Union
 
 from fastapi import BackgroundTasks
 
@@ -50,7 +50,7 @@ class SubmissionCRUD(AppCRUD):
         orders = self.db.query(Order).filter(Order.master_username == master.username).order_by(Order.created_at).all()
         return list(orders)[::-1]
 
-    def update_order_by_id(self, id: int, data: OrderEdit, user: Master) -> Order | Exception:
+    def update_order_by_id(self, id: int, data: OrderEdit, user: Master) -> Union[Order, Exception]:
         order = self.db.query(Order).filter(Order.id == id).first()
         if not order:
             return AppException.NotFoundException('Заказ не найден!')
@@ -73,7 +73,7 @@ class SubmissionCRUD(AppCRUD):
         self.db.refresh(order)
         return order
 
-    def finish_order_by_id(self, id: int, status: StatusEnum, user: models.user.Client) -> dict | Exception:
+    def finish_order_by_id(self, id: int, status: StatusEnum, user: models.user.Client) -> Union[dict, Exception]:
         order = self.db.query(Order).filter(Order.id == id).first()
         if not order:
             return AppException.NotFoundException('Заказ не найден!')
@@ -96,7 +96,7 @@ class SubmissionCRUD(AppCRUD):
         self.db.commit()
         return {'result': 'Success!'}
 
-    def remove_order_by_id(self, id: int, user_id: int) -> str | Exception:
+    def remove_order_by_id(self, id: int, user_id: int) -> Union[str, Exception]:
         order = self.db.query(Order).filter(Order.id == id).first()
         if not order:
             return AppException.NotFoundException('Заказ не найден!')
@@ -108,7 +108,7 @@ class SubmissionCRUD(AppCRUD):
         return 'Success!'
 
     async def create_request(self, data: RequestIn, user: models.user.Client, bg_tasks: BackgroundTasks,
-                             files: List[UploadFile] = list, ) -> ServiceRequest | Exception:
+                             files: List[UploadFile] = list, ) -> Union[ServiceRequest, Exception]:
         if self.db.query(ServiceType).filter(ServiceType.id == data.service_type_id).first() is None:
             return AppException.NotFoundException('Неверная категория услуг!')
         request = ServiceRequest(client_id=user.id, title=data.title, description=data.description,
@@ -162,7 +162,7 @@ class SubmissionCRUD(AppCRUD):
         return list(requests)[::-1] if len(requests) else []
 
     def update_request_by_id(self, id: int, data: RequestEdit, user_id: int) \
-            -> ServiceRequest | Exception:
+            -> Union[ServiceRequest, Exception]:
         request = self.db.query(ServiceRequest).filter(ServiceRequest.id == id).first()
         if not request:
             return AppException.NotFoundException('Заявка не найдена!')
@@ -216,7 +216,7 @@ class SubmissionCRUD(AppCRUD):
         self.db.commit()
         return {'result': 'Success!'}
 
-    def remove_request_by_id(self, id: int, user_id: int) -> str | Exception:
+    def remove_request_by_id(self, id: int, user_id: int) -> Union[str, Exception]:
         request = self.db.query(ServiceRequest).filter(ServiceRequest.id == id).first()
         if not request:
             return AppException.NotFoundException('Заявка не найдена!')
@@ -229,7 +229,7 @@ class SubmissionCRUD(AppCRUD):
         self.db.commit()
         return 'Success!'
 
-    def create_offer(self, data: OfferIn, master_username: str) -> Offer | Exception:
+    def create_offer(self, data: OfferIn, master_username: str) -> Union[Offer, Exception]:
         offer = self.db.query(Offer).filter(
             Offer.request_id == data.request_id, Offer.master_username == master_username).first()
         if offer is not None:
@@ -246,12 +246,12 @@ class SubmissionCRUD(AppCRUD):
         self.db.refresh(offer)
         return offer
 
-    def get_offer_by_submission(self, request_id: int | None, username: str) -> Offer:
+    def get_offer_by_submission(self, request_id: Union[int, None], username: str) -> Offer:
         offer = self.db.query(Offer).filter(
             Offer.request_id == request_id, Offer.master_username == username).first()
         return offer
 
-    def get_offers_by_submission(self, request_id: int | None) -> List[Offer]:
+    def get_offers_by_submission(self, request_id: Union[int, None]) -> List[Offer]:
         offers = self.db.query(Offer).filter(Offer.request_id == request_id).all()
         return list(offers) if len(offers) else []
 
@@ -259,7 +259,7 @@ class SubmissionCRUD(AppCRUD):
         offers = self.db.query(Offer).filter(Offer.master_username == master_username).all()
         return list(offers) if len(offers) else []
 
-    def update_offer_by_id(self, id: int, data: OfferEdit, master_username: str) -> Offer | Exception:
+    def update_offer_by_id(self, id: int, data: OfferEdit, master_username: str) -> Union[Offer, Exception]:
         offer = self.db.query(Offer).filter(Offer.id == id).first()
         if not offer:
             return AppException.NotFoundException('Предложение не найдено!')
@@ -276,7 +276,7 @@ class SubmissionCRUD(AppCRUD):
         self.db.refresh(offer)
         return offer
 
-    def accept_offer(self, id: int, client: models.user.Client) -> Exception | dict:
+    def accept_offer(self, id: int, client: models.user.Client) -> Union[Exception, dict]:
         offer = self.db.query(Offer).filter(Offer.id == id).first()
         if not offer:
             return AppException.NotFoundException('Предложение не найдено!')
@@ -289,7 +289,7 @@ class SubmissionCRUD(AppCRUD):
         self.db.commit()
         return {'result': 'Success!', 'master_id': offer.master.client_id}
 
-    def delete_offer_by_id(self, id: int, master_username: str) -> str | Exception:
+    def delete_offer_by_id(self, id: int, master_username: str) -> Union[str, Exception]:
         offer = self.db.query(Offer).filter(Offer.id == id).first()
         if not offer:
             return AppException.NotFoundException('Предложение не найдено!')
@@ -301,7 +301,7 @@ class SubmissionCRUD(AppCRUD):
         return 'Success!'
 
     # noinspection PyUnresolvedReferences
-    def create_feedback(self, data: FeedbackIn, user_id: int, pictures: List[UploadFile] = None) -> SubmissionFeedback | Exception:
+    def create_feedback(self, data: FeedbackIn, user_id: int, pictures: List[UploadFile] = None) -> Union[SubmissionFeedback, Exception]:
         feedback = self.db.query(SubmissionFeedback).filter(
             SubmissionFeedback.client_id == user_id,
             SubmissionFeedback.master_username == data.master_username).first()
@@ -346,8 +346,8 @@ class SubmissionCRUD(AppCRUD):
         self.db.refresh(new_feedback)
         return new_feedback
 
-    def get_feedback_by_offer(self, offer_id: int | None, order_id: int | None, user_id: int = None,
-                              master_username: str = None) -> SubmissionFeedback | Exception:
+    def get_feedback_by_offer(self, offer_id: Union[int, None], order_id: Union[int, None], user_id: int = None,
+                              master_username: str = None) -> Union[SubmissionFeedback, Exception]:
         feedback = self.db.query(SubmissionFeedback).filter(SubmissionFeedback.offer_id == offer_id,
                                                             SubmissionFeedback.order_id == order_id).first()
         if not feedback:
@@ -361,7 +361,7 @@ class SubmissionCRUD(AppCRUD):
             .all()
         return list(feedbacks)
 
-    def update_feedback_by_id(self, id: int, data: FeedbackEdit, master: Master) -> SubmissionFeedback | Exception:
+    def update_feedback_by_id(self, id: int, data: FeedbackEdit, master: Master) -> Union[SubmissionFeedback, Exception]:
         feedback = self.db.query(SubmissionFeedback).filter(SubmissionFeedback.id == id).first()
         if not feedback:
             return AppException.NotFoundException('Отзыв не найден!')
@@ -373,7 +373,7 @@ class SubmissionCRUD(AppCRUD):
         self.db.refresh(feedback)
         return feedback
 
-    def delete_feedback_by_id(self, id: int, user_id: int) -> str | Exception:
+    def delete_feedback_by_id(self, id: int, user_id: int) -> Union[str, Exception]:
         feedback = self.db.query(SubmissionFeedback).filter(SubmissionFeedback.id == id).first()
         if not feedback:
             return AppException.NotFoundException('Отзыв не найден!')
