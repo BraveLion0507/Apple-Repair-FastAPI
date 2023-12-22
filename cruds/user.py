@@ -131,7 +131,7 @@ class UserCRUD(AppCRUD):
             "refresh_token": refresh_token,
         }
 
-    async def create_master(self, id: int, master: MasterRegister | MasterIn) -> Union[dict, Exception]:
+    async def create_master(self, id: int, master: MasterRegister | MasterIn) -> Union[dict, Exception, object]:
         if self.db.query(Master).filter(Master.username == str(master.username)).first() is not None:
             return AppException.AlreadyExistsException(
                 detail='Пользователь с таким именем пользователя уже существует!')
